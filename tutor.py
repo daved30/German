@@ -126,28 +126,46 @@ def translate_to_english(german_text):
     except:
         return "[Translation Error]"
             
-if __name__ == "__main__":
-    # 1. Record your voice
-    record_test_audio()
+async def conversation_loop():
+    print("--- German Tutor Active ---")
+    print("Press Ctrl+C to stop the session.")
     
-    # 2. Transcribe it
-    transcribed_text = transcribe_german_audio()
-    
-    if transcribed_text:
-        # Translate what YOU said
-        your_translation = translate_to_english(transcribed_text)
-        print(f"You said (DE): {transcribed_text}")
-        print(f"You said (EN): {your_translation}")
-        
-        # 3. Get AI thoughts
-        ai_reply = get_ai_response(transcribed_text)
-        
-        if ai_reply:
-            # Translate what the AI said
-            ai_translation = translate_to_english(ai_reply)
-            print(f"AI replied (DE): {ai_reply}")
-            print(f"AI replied (EN): {ai_translation}")
+    while True:
+        try:
+            # 1. Record
+            record_test_audio()
             
-            # 4. Speak
-            asyncio.run(generate_speech(ai_reply))
+            # 2. Transcribe (Forced German)
+            de_text = transcribe_german_audio()
+            if not de_text or len(de_text) < 2:
+                print("[No clear speech detected, trying again...]")
+                continue
+            
+            # Translate YOUR speech for verification
+            en_text = translate_to_english(de_text)
+            print(f"\nYOU (DE): {de_text}")
+            print(f"YOU (EN): {en_text}")
 
+            # 3. Brain (Ollama)
+            ai_de = get_ai_response(de_text)
+            
+            # Translate AI speech for verification
+            ai_en = translate_to_english(ai_de)
+            print(f"\nAI (DE): {ai_de}")
+            print(f"AI (EN): {ai_en}")
+
+            # 4. Speak
+            await generate_speech(ai_de)
+            
+            # 5. Pause to prevent infinite feedback
+            input("\n--- Press Enter to speak again ---")
+
+        except KeyboardInterrupt:
+            print("\nBis bald! Tschüss!")
+            break
+        except Exception as e:
+            print(f"[Loop Error]: {e}")
+            break
+
+if __name__ == "__main__":
+    asyncio.run(conversation_loop())
