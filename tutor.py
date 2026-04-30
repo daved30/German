@@ -112,20 +112,42 @@ def get_ai_response(user_text):
         print(f"[Ollama Error]: {e}")
         return "Entschuldigung, ich habe einen Fehler gemacht." # "Sorry, I made a mistake"
 
+def translate_to_english(german_text):
+    """Quickly translates German text to English for verification."""
+    try:
+        response = ollama.chat(model='glm4:9b', messages=[
+            {
+                'role': 'system', 
+                'content': 'Translate the following German text into English. Provide ONLY the translation.'
+            },
+            {'role': 'user', 'content': german_text},
+        ])
+        return response['message']['content'].strip()
+    except:
+        return "[Translation Error]"
+            
 if __name__ == "__main__":
     # 1. Record your voice
     record_test_audio()
     
-    # 2. Transcribe it to German text
+    # 2. Transcribe it
     transcribed_text = transcribe_german_audio()
     
     if transcribed_text:
-        print(f"You said: {transcribed_text}")
+        # Translate what YOU said
+        your_translation = translate_to_english(transcribed_text)
+        print(f"You said (DE): {transcribed_text}")
+        print(f"You said (EN): {your_translation}")
         
-        # 3. Get the AI's thoughts
+        # 3. Get AI thoughts
         ai_reply = get_ai_response(transcribed_text)
-        print(f"AI replied: {ai_reply}")
         
-        # 4. Speak the AI's thoughts
         if ai_reply:
+            # Translate what the AI said
+            ai_translation = translate_to_english(ai_reply)
+            print(f"AI replied (DE): {ai_reply}")
+            print(f"AI replied (EN): {ai_translation}")
+            
+            # 4. Speak
             asyncio.run(generate_speech(ai_reply))
+
