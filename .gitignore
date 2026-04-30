@@ -1,2 +1,8 @@
 german_tutor_venv/
 open-webui/
+*.wav
+*.mp3
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
