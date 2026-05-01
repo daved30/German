@@ -5,6 +5,9 @@ import ollama       # Connects to your local glm4:9b model
 import edge_tts     # The high-quality German voice engine
 import speech_recognition as sr  # Handles your AirPods/Microphone input
 
+ollama_model = os.getenv("OLLAMA_MODEL", "glm4:9b")  # Default to 'glm4:9b' if not set
+print(f"Using Ollama model: {ollama_model}")
+
 def record_test_audio():
     """Records audio from the mic and saves it to a file for verification."""
     r = sr.Recognizer()
@@ -29,8 +32,8 @@ def record_test_audio():
             print(f"[Error during recording]: {e}")
             
 # 1. Load the model once at the top level
-print("Loading Whisper 'small' model... (this may take a moment)")
-WHISPER_MODEL = whisper.load_model("small")
+print("Loading Whisper 'medium' model... (this may take a moment)")
+WHISPER_MODEL = whisper.load_model("medium")
 
 def transcribe_german_audio(file_path="test_input.wav"):
     """Converts the recorded wav file into German text."""
@@ -62,27 +65,8 @@ async def generate_speech(text):
         communicate = edge_tts.Communicate(clean_text, "de-DE-KatjaNeural")
         await communicate.save("response.mp3")
         
-        # 3. Play the file using Mac's native player
+        # 3. Play the file using Mac's native player 'afplay'
         print("[Playing AI Response...]")
-        os.system("afplay response.mp3")
-        
-    except Exception as e:
-        print(f"[TTS Error]: {e}")
-        
-async def generate_speech(text):
-    """Converts input text to a neural German voice and plays it."""
-    try:
-        # Clean text for the neural engine
-        clean_text = text.replace('*', '').replace('_', '').strip()
-        
-        # We will use 'de-DE-KillianNeural' for a clear male voice 
-        # or 'de-DE-KatjaNeural' for a clear female voice.
-        communicate = edge_tts.Communicate(clean_text, "de-DE-KatjaNeural")
-        
-        print(f"[Generating voice for: {clean_text}]")
-        await communicate.save("response.mp3")
-        
-        # Play using Mac's native 'afplay'
         os.system("afplay response.mp3")
         
     except Exception as e:
@@ -94,7 +78,7 @@ def get_ai_response(user_text):
         print(f"[Ollama is thinking...]")
         
         # This connects to your 'ollama serve' running in the other terminal
-        response = ollama.chat(model='glm4:9b', messages=[
+        response = ollama.chat(model=ollama_model, messages=[
             {
                 'role': 'system', 
                 'content': 'You are a friendly German tutor. Respond ONLY in simple German. Keep your answers brief (1-2 sentences) so they are easy to listen to.'
@@ -115,7 +99,7 @@ def get_ai_response(user_text):
 def translate_to_english(german_text):
     """Quickly translates German text to English for verification."""
     try:
-        response = ollama.chat(model='glm4:9b', messages=[
+        response = ollama.chat(model=ollama_model, messages=[
             {
                 'role': 'system', 
                 'content': 'Translate the following German text into English. Provide ONLY the translation.'
