@@ -5,7 +5,8 @@ def record_audio(filepath="test_input.wav"):
     r = sr.Recognizer()
     with sr.Microphone() as source:
         print("\n[Adjusting for noise... wait 1s]")
-        r.adjust_for_ambient_noise(source, duration=1)
+        r.adjust_for_ambient_noise(source, duration=2) # Increase from 1 to 2
+
         print("[Recording started: Speak German now!]")
         try:
             audio = r.listen(source, timeout=5, phrase_time_limit=10)
