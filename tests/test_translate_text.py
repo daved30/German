@@ -3,6 +3,8 @@ from unittest.mock import patch
 from utils.translate_text import translate_text
 
 # We 'patch' the ollama.chat function so it doesn't actually call the local server
+
+
 @patch('ollama.chat')
 def test_translate_text_success(mock_chat):
     # 1. Setup: Define what the fake Ollama should return
@@ -18,6 +20,7 @@ def test_translate_text_success(mock_chat):
     # 3. Assert: Verify the result is what we expected
     assert result == "How are you?"
     assert isinstance(result, str)
+
 
 @patch('ollama.chat')
 def test_translate_text_error_handling(mock_chat):

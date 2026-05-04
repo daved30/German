@@ -8,18 +8,22 @@ from utils.generate_speech import generate_speech
 
 ollama_model = os.getenv("OLLAMA_MODEL", "glm4:9b")
 
+
 async def conversation_loop():
     print("--- German Tutor: Modular Mode ---")
-    
+
     while True:
         try:
-            # 1. Ear
-            if not record_audio(): continue
-            
-            # 2. Transcribe
-            de_text = transcribe_german()
-            if not de_text or len(de_text) < 2: continue
-            
+            # 1. Ear - Capture the buffer into a variable
+            audio_ram = record_audio()
+            if not audio_ram:
+                continue
+
+            # 2. Transcribe - Pass that specific buffer to Whisper
+            de_text = transcribe_german(audio_ram)
+            if not de_text or len(de_text) < 2:
+                continue
+
             # 3. Process & Translate
             user_en = translate_text(ollama_model, de_text)
             print(f"\nYOU (DE): {de_text}")
@@ -27,13 +31,13 @@ async def conversation_loop():
 
             ai_de = get_ai_response(ollama_model, de_text)
             ai_en = translate_text(ollama_model, ai_de)
-            
+
             print(f"AI (DE): {ai_de}")
             print(f"AI (EN): {ai_en}")
 
             # 4. Voice
             await generate_speech(ai_de)
-            
+
             input("\n--- Press Enter to speak again ---")
 
         except KeyboardInterrupt:

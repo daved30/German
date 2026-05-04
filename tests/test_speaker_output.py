@@ -6,6 +6,7 @@ from utils.generate_speech import generate_speech
 # This tells pytest-asyncio to treat this file's async tests automatically
 pytestmark = pytest.mark.asyncio
 
+
 async def test_speaker_and_audio_file_creation():
     """
     Validates that a German sentence is converted to an MP3 and played.
@@ -22,4 +23,4 @@ async def test_speaker_and_audio_file_creation():
 
     # 3. Assert: Verify the logic flow worked
     # (Note: Katja should speak clearly during this test)
-    assert True 
+    assert True

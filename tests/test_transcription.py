@@ -1,25 +1,35 @@
 import pytest
-import os
+import io
 import wave
 from utils.transcribe_german import transcribe_german
 
-def test_whisper_transcription_accuracy():
+
+def test_whisper_transcription_v2_logic():
     """
-    Validates that Whisper correctly transcribes a specific German phrase.
-    Note: Requires an actual model load, so it will take a few seconds.
+    Validates that the V2 transcriber accepts and processes a valid RAM buffer.
     """
-    # 1. We'll use the 'integration_test.wav' from your previous run if it exists,
-    # but for a standard test, we check if the function handles a file.
-    test_file = "test_input.wav"
-    
-    # We skip if the file doesn't exist, or you can record a fresh one here
-    if not os.path.exists(test_file):
-        pytest.skip("No test audio file found. Run record_audio first.")
+    # 1. Create a VALID (but silent) WAV file in a RAM buffer
+    buffer = io.BytesIO()
+    with wave.open(buffer, 'wb') as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(16000)
+        wav.writeframes(b'\x00' * 32000)  # 1 second of silence
+
+    # Reset buffer pointer to the beginning for reading
+    buffer.seek(0)
 
     # 2. Action
-    result = transcribe_german(test_file)
+    result = transcribe_german(buffer)
 
     # 3. Assert
+    # On silence, Whisper usually returns an empty string "", not None.
+    # None only happens if the file logic itself crashes.
     assert result is not None
-    assert len(result) > 0
-    print(f"\nWhisper actually heard: {result}")
+    assert isinstance(result, str)
+
+
+def test_transcription_none_handling():
+    """Ensures the transcriber handles empty input gracefully."""
+    result = transcribe_german(None)
+    assert result is None
