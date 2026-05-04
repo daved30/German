@@ -1,19 +1,21 @@
 import pytest
+from unittest.mock import patch
 from utils.get_ai_response import get_ai_response
 
 
-def test_ollama_live_response():
-    """
-    Real-world check: Does Ollama return a sensible German response?
-    """
-    model = "glm4:9b"
-    prompt = "Hallo, wie heißt du?"
+@patch('ollama.chat')
+def test_get_ai_response_stream_logic(mock_chat):
+    # Setup mock to return a list (simulating a stream)
+    mock_chat.return_value = [
+        {'message': {'content': 'Hallo'}},
+        {'message': {'content': ' Dave!'}}
+    ]
 
     # Action
-    response = get_ai_response(model, prompt)
+    response_gen = get_ai_response("glm4:9b", "Hi")
+
+    # Collect tokens from the generator
+    full_text = "".join(list(response_gen))
 
     # Assert
-    assert response is not None
-    assert "Error" not in response
-    assert len(response) > 5
-    print(f"\nAI Response: {response}")
+    assert full_text == "Hallo Dave!"
