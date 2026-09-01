@@ -1,23 +1,21 @@
 import edge_tts
 import os
+import uuid
 
 
 async def generate_speech(text):
-    """Converts text to speech and plays it via afplay."""
-    if not text:
-        return
+    if not text or len(text.strip()) < 2:
+        return None
+
+    unique_id = uuid.uuid4().hex
+    filename = os.path.abspath(
+        f"response_{unique_id}.mp3")  # Use absolute path
 
     try:
-        # Clean text
         clean_text = text.replace('*', '').replace('_', '').strip()
-
-        # Neural Voice
         communicate = edge_tts.Communicate(clean_text, "de-DE-KatjaNeural")
-        await communicate.save("response.mp3")
-
-        # Play via native Mac afplay
-        print("[Playing AI Response...]")
-        os.system("afplay response.mp3")
-
+        await communicate.save(filename)
+        return filename
     except Exception as e:
         print(f"[TTS Error]: {e}")
+        return None
